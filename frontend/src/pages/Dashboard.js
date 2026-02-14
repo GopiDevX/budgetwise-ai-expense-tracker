@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { FiTrendingUp, FiDollarSign, FiCreditCard, FiPieChart, FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiEye, FiEyeOff, FiChevronDown, FiHeart, FiLoader, FiDownload, FiCamera, FiX } from 'react-icons/fi';
+import { FiTrendingUp, FiDollarSign, FiCreditCard, FiPieChart, FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiEye, FiEyeOff, FiChevronDown, FiHeart, FiLoader, FiDownload, FiCamera, FiX, FiUser } from 'react-icons/fi';
 
 import TransactionForm from '../components/TransactionForm';
 import ReceiptScanner from '../components/ReceiptScanner';
 import ConfirmationModal from '../components/Common/ConfirmationModal';
 import usePageTitle from '../hooks/usePageTitle';
 import { useCurrency } from '../contexts/CurrencyContext';
+import { useAuth } from '../contexts/AuthContext';
 import transactionService from '../services/transactionService';
 import categoryService from '../services/categoryService';
 import budgetService from '../services/budgetService';
@@ -430,6 +431,45 @@ const AddButton = styled.button`
   }
 `;
 
+const ProfileButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.375rem 1rem 0.375rem 0.375rem;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 2rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #0f172a;
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const ProfileAvatar = styled.div`
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+`;
+
+const ProfileName = styled.span`
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding-right: 0.25rem;
+`;
+
 // Mock data for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B6B', '#4ECDC4', '#45B7D1', '#F9C74F', '#90BE6D'];
 
@@ -437,6 +477,7 @@ const Dashboard = () => {
   // Set page title
   usePageTitle('Dashboard | BudgetWise');
   const { format: formatCurrency, symbol: currencySymbol } = useCurrency();
+  const { currentUser } = useAuth();
 
   const [transactions, setTransactions] = useState([]);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -865,19 +906,26 @@ const Dashboard = () => {
 
         <WelcomeSection>
           <div>
-            <WelcomeTitle>Dashboard Overview</WelcomeTitle>
-            <WelcomeSubtitle>Your financial health at a glance</WelcomeSubtitle>
+            <WelcomeTitle>Welcome back, {currentUser?.firstName || 'User'}! 👋</WelcomeTitle>
+            <WelcomeSubtitle>Here's what's happening with your finance today.</WelcomeSubtitle>
           </div>
           <HeaderControls>
-            <IconButton onClick={() => setShowBalances(!showBalances)} title={showBalances ? "Hide details" : "Show details"}>
-              {showBalances ? <FiEye size={18} /> : <FiEyeOff size={18} />}
-            </IconButton>
-            <DropdownButton>
-              Monthly <FiChevronDown size={16} />
+            <DropdownButton onClick={() => setShowScanner(true)}>
+              <FiCamera /> Scan Receipt
             </DropdownButton>
-            <RefreshButton onClick={refreshTransactions} disabled={isLoading}>
-              <FiRefreshCw size={16} className={isLoading ? 'spinning' : ''} /> {isLoading ? 'Loading...' : 'Refresh'}
-            </RefreshButton>
+            <IconButton onClick={refreshTransactions} title="Refresh Data">
+              <FiRefreshCw />
+            </IconButton>
+            <Link to="/settings" style={{ textDecoration: 'none' }}>
+              <ProfileButton>
+                <ProfileAvatar>
+                  {currentUser?.firstName ? currentUser.firstName[0].toUpperCase() : <FiUser />}
+                </ProfileAvatar>
+                <ProfileName>
+                  {currentUser?.firstName || 'User'}
+                </ProfileName>
+              </ProfileButton>
+            </Link>
             <DropdownButton onClick={() => exportService.exportToCSV(transactions, exportService.getFilename('transactions'))} title="Export to CSV">
               <FiDownload size={16} /> CSV
             </DropdownButton>

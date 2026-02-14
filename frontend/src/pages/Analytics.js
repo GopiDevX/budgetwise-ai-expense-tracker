@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
 import { FiTrendingUp, FiArrowUpRight, FiArrowDownRight, FiCalendar } from 'react-icons/fi';
 import usePageTitle from '../hooks/usePageTitle';
+import authService from '../services/authService';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -134,30 +135,49 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 
 const Analytics = () => {
     usePageTitle('Analytics | BudgetWise');
+    const [loading, setLoading] = useState(true);
+    const [monthlyData, setMonthlyData] = useState([]);
+    const [categoryData, setCategoryData] = useState([]);
+    const [trendData, setTrendData] = useState([]);
+    const [stats, setStats] = useState({
+        totalIncome: 0,
+        totalExpenses: 0,
+        balance: 0
+    });
 
-    const monthlyData = [
-        { name: 'Jan', income: 4500, expense: 3200 },
-        { name: 'Feb', income: 5200, expense: 3800 },
-        { name: 'Mar', income: 4800, expense: 4100 },
-        { name: 'Apr', income: 5500, expense: 3500 },
-        { name: 'May', income: 6000, expense: 4200 },
-        { name: 'Jun', income: 5800, expense: 3900 },
-    ];
+    React.useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const token = authService.getToken();
+                const headers = { 'Authorization': `Bearer ${token}` };
 
-    const categoryData = [
-        { name: 'Shopping', value: 35 },
-        { name: 'Food', value: 25 },
-        { name: 'Transport', value: 20 },
-        { name: 'Bills', value: 15 },
-        { name: 'Other', value: 5 },
-    ];
+                const [summaryRes, monthlyRes, categoryRes, weeklyRes] = await Promise.all([
+                    fetch('http://localhost:8081/api/transactions/summary', { headers }),
+                    fetch('http://localhost:8081/api/transactions/monthly-summary', { headers }),
+                    fetch('http://localhost:8081/api/transactions/category-summary', { headers }),
+                    fetch('http://localhost:8081/api/transactions/weekly-savings', { headers })
+                ]);
 
-    const trendData = [
-        { name: 'Week 1', savings: 1200 },
-        { name: 'Week 2', savings: 1800 },
-        { name: 'Week 3', savings: 1500 },
-        { name: 'Week 4', savings: 2200 },
-    ];
+                if (summaryRes.ok) setStats(await summaryRes.json());
+                if (monthlyRes.ok) setMonthlyData(await monthlyRes.json());
+                if (categoryRes.ok) setCategoryData(await categoryRes.json());
+                if (weeklyRes.ok) setTrendData(await weeklyRes.json());
+
+            } catch (error) {
+                console.error("Error fetching analytics:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
+
+    if (loading) return <PageContainer>Loading analytics...</PageContainer>;
+
+    const avgSpend = monthlyData.length > 0
+        ? (stats.totalExpenses / monthlyData.length).toFixed(0)
+        : 0;
 
     return (
         <PageContainer>
@@ -176,27 +196,27 @@ const Analytics = () => {
                 <StatCard>
                     <StatLabel>Total Income</StatLabel>
                     <StatValue>
-                        ₹31,800
-                        <TrendBadge positive><FiArrowUpRight size={12} />12%</TrendBadge>
+                        ₹{stats.totalIncome}
+                        <TrendBadge positive><FiArrowUpRight size={12} />Actual</TrendBadge>
                     </StatValue>
                 </StatCard>
                 <StatCard>
                     <StatLabel>Total Expenses</StatLabel>
                     <StatValue>
-                        ₹22,700
-                        <TrendBadge><FiArrowDownRight size={12} />8%</TrendBadge>
+                        ₹{stats.totalExpenses}
+                        <TrendBadge><FiArrowDownRight size={12} />Actual</TrendBadge>
                     </StatValue>
                 </StatCard>
                 <StatCard>
                     <StatLabel>Net Savings</StatLabel>
                     <StatValue>
-                        ₹9,100
-                        <TrendBadge positive><FiArrowUpRight size={12} />24%</TrendBadge>
+                        ₹{stats.balance}
+                        <TrendBadge positive={stats.balance >= 0}><FiArrowUpRight size={12} />Actual</TrendBadge>
                     </StatValue>
                 </StatCard>
                 <StatCard>
                     <StatLabel>Avg Monthly Spend</StatLabel>
-                    <StatValue>₹3,783</StatValue>
+                    <StatValue>₹{avgSpend}</StatValue>
                 </StatCard>
             </StatsRow>
 

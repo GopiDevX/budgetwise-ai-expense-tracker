@@ -8,6 +8,8 @@ import { ThemeProvider as CustomThemeProvider } from './contexts/ThemeContext';
 import './styles/darkmode.css';
 
 import Navbar from './components/Navbar/Navbar';
+import ChatBot from './components/ChatBot';
+
 
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -328,6 +330,7 @@ function App() {
                   <Route path="/forgot-password/reset" element={<ResetPassword />} />
                 </Routes>
               </div>
+              <ChatBot />
             </Router>
           </CurrencyProvider>
         </AuthProvider>

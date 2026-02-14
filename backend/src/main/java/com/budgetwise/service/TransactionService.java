@@ -151,4 +151,79 @@ public class TransactionService {
                 .map(Transaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
+
+    public List<java.util.Map<String, Object>> getMonthlyTransactionSummary(Long userId) {
+        LocalDateTime sixMonthsAgo = LocalDateTime.now().minusMonths(6);
+        List<Transaction> transactions = transactionRepository.findByUserIdAndDateRange(userId, sixMonthsAgo,
+                LocalDateTime.now());
+
+        java.util.Map<java.time.YearMonth, java.util.Map<String, BigDecimal>> summary = transactions.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        t -> java.time.YearMonth.from(t.getTransactionDate()),
+                        java.util.stream.Collectors.toMap(
+                                t -> t.getType().toString().toLowerCase(),
+                                Transaction::getAmount,
+                                BigDecimal::add)));
+
+        return summary.entrySet().stream()
+                .sorted(java.util.Map.Entry.comparingByKey())
+                .map(entry -> {
+                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("name", entry.getKey().getMonth().name().substring(0, 3));
+                    map.put("income", entry.getValue().getOrDefault("income", BigDecimal.ZERO));
+                    map.put("expense", entry.getValue().getOrDefault("expense", BigDecimal.ZERO));
+                    return map;
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public List<java.util.Map<String, Object>> getCategoryExpenseSummary(Long userId) {
+        List<Transaction> expenses = getUserTransactionsByType(userId, Transaction.TransactionType.EXPENSE);
+
+        java.util.Map<String, BigDecimal> summary = expenses.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        t -> t.getCategory().getName(),
+                        java.util.stream.Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount,
+                                BigDecimal::add)));
+
+        return summary.entrySet().stream()
+                .map(entry -> {
+                    java.util.Map<String, Object> map = new java.util.HashMap<>();
+                    map.put("name", entry.getKey());
+                    map.put("value", entry.getValue());
+                    return map;
+                })
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    public List<java.util.Map<String, Object>> getWeeklySavings(Long userId) {
+        LocalDateTime fourWeeksAgo = LocalDateTime.now().minusWeeks(4);
+        List<Transaction> transactions = transactionRepository.findByUserIdAndDateRange(userId, fourWeeksAgo,
+                LocalDateTime.now());
+
+        // Group by Week of Year
+        java.util.Map<Integer, java.util.Map<String, BigDecimal>> weeklyData = transactions.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        t -> t.getTransactionDate().get(java.time.temporal.ChronoField.ALIGNED_WEEK_OF_YEAR),
+                        java.util.stream.Collectors.toMap(
+                                t -> t.getType().toString().toLowerCase(),
+                                Transaction::getAmount,
+                                BigDecimal::add)));
+
+        // Convert to list and calculate savings
+        List<java.util.Map<String, Object>> result = new java.util.ArrayList<>();
+        int i = 1;
+        for (java.util.Map<String, BigDecimal> data : weeklyData.values()) {
+            BigDecimal income = data.getOrDefault("income", BigDecimal.ZERO);
+            BigDecimal expense = data.getOrDefault("expense", BigDecimal.ZERO);
+            BigDecimal savings = income.subtract(expense);
+
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("name", "Week " + i++);
+            map.put("savings", savings);
+            result.add(map);
+        }
+        return result;
+    }
+
 }

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { FiSend, FiCpu, FiUser, FiMessageSquare, FiZap } from 'react-icons/fi';
+import { FiSend, FiCpu, FiUser } from 'react-icons/fi';
+import { useAuth } from '../contexts/AuthContext';
+import authService from '../services/authService';
 import usePageTitle from '../hooks/usePageTitle';
 
 const pulse = keyframes`
@@ -197,79 +199,126 @@ const Chip = styled.button`
 `;
 
 const AiAdvisor = () => {
-    usePageTitle('AI Advisor | BudgetWise');
-    const [input, setInput] = useState('');
-    const [messages, setMessages] = useState([
-        { id: 1, isUser: false, text: "Hi! I'm your AI Financial Advisor. I can help you with budgeting tips, spending analysis, and personalized financial advice. What would you like to know?" }
-    ]);
+  usePageTitle('AI Advisor | BudgetWise');
+  const [input, setInput] = useState('');
+  const [messages, setMessages] = useState([
+    { id: 1, isUser: false, text: "Hi! I'm your AI Financial Advisor. I can help you with budgeting tips, spending analysis, and personalized financial advice. What would you like to know?" }
+  ]);
 
-    const suggestions = [
-        "How can I save more?",
-        "Analyze my spending",
-        "Create a budget plan",
-        "Investment tips"
-    ];
+  const suggestions = [
+    "How can I save more?",
+    "Analyze my spending",
+    "Create a budget plan",
+    "Investment tips"
+  ];
 
-    const handleSend = () => {
-        if (!input.trim()) return;
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = React.useRef(null);
 
-        setMessages(prev => [...prev, { id: Date.now(), isUser: true, text: input }]);
-        setInput('');
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
-        // Simulate AI response
-        setTimeout(() => {
-            setMessages(prev => [...prev, {
-                id: Date.now(),
-                isUser: false,
-                text: "That's a great question! Based on your recent spending patterns, I'd recommend focusing on reducing discretionary expenses. Would you like me to create a detailed savings plan for you?"
-            }]);
-        }, 1500);
-    };
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
-    return (
-        <PageContainer>
-            <PageHeader>
-                <AiAvatar>
-                    <FiCpu size={32} />
-                </AiAvatar>
-                <PageTitle>AI Financial Advisor</PageTitle>
-                <PageSubtitle>Get personalized financial guidance powered by AI</PageSubtitle>
-            </PageHeader>
+  const handleSend = async (text = input) => {
+    if (!text.trim()) return;
 
-            <ChatContainer>
-                <MessagesArea>
-                    {messages.map(msg => (
-                        <Message key={msg.id} isUser={msg.isUser}>
-                            <MessageAvatar isUser={msg.isUser}>
-                                {msg.isUser ? <FiUser size={16} /> : <FiCpu size={16} />}
-                            </MessageAvatar>
-                            <MessageBubble isUser={msg.isUser}>{msg.text}</MessageBubble>
-                        </Message>
-                    ))}
-                </MessagesArea>
+    const userMessage = { id: Date.now(), isUser: true, text: text };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
 
-                <SuggestionChips>
-                    {suggestions.map((suggestion, idx) => (
-                        <Chip key={idx} onClick={() => setInput(suggestion)}>
-                            {suggestion}
-                        </Chip>
-                    ))}
-                </SuggestionChips>
+    try {
+      const token = authService.getToken();
+      const response = await fetch('http://localhost:8081/api/chat/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ message: text })
+      });
 
-                <InputArea>
-                    <ChatInput
-                        placeholder="Ask me anything about your finances..."
-                        value={input}
-                        onChange={e => setInput(e.target.value)}
-                        onKeyPress={e => e.key === 'Enter' && handleSend()}
-                    />
-                    <SendButton onClick={handleSend} disabled={!input.trim()}>
-                        <FiSend size={20} />
-                    </SendButton>
-                </InputArea>
-            </ChatContainer>
-        </PageContainer>
-    );
+      if (!response.ok) {
+        throw new Error('Failed to get response');
+      }
+
+      const data = await response.json();
+      const botMessage = { id: Date.now() + 1, isUser: false, text: data.response };
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setMessages(prev => [
+        ...prev,
+        { id: Date.now() + 1, isUser: false, text: "Sorry, I'm having trouble connecting right now. Please try again later." }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <PageContainer>
+      <PageHeader>
+        <AiAvatar>
+          <FiCpu size={32} />
+        </AiAvatar>
+        <PageTitle>AI Financial Advisor</PageTitle>
+        <PageSubtitle>Get personalized financial guidance powered by AI</PageSubtitle>
+      </PageHeader>
+
+      <ChatContainer>
+        <MessagesArea>
+          {messages.map(msg => (
+            <Message key={msg.id} isUser={msg.isUser}>
+              <MessageAvatar isUser={msg.isUser}>
+                {msg.isUser ? <FiUser size={16} /> : <FiCpu size={16} />}
+              </MessageAvatar>
+              <MessageBubble isUser={msg.isUser}>{msg.text}</MessageBubble>
+            </Message>
+          ))}
+          {isLoading && (
+            <Message isUser={false}>
+              <MessageAvatar isUser={false}>
+                <FiCpu size={16} />
+              </MessageAvatar>
+              <MessageBubble isUser={false}>
+                <TypingIndicator>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </TypingIndicator>
+              </MessageBubble>
+            </Message>
+          )}
+          <div ref={messagesEndRef} />
+        </MessagesArea>
+
+        <SuggestionChips>
+          {suggestions.map((suggestion, idx) => (
+            <Chip key={idx} onClick={() => handleSend(suggestion)}>
+              {suggestion}
+            </Chip>
+          ))}
+        </SuggestionChips>
+
+        <InputArea>
+          <ChatInput
+            placeholder="Ask me anything about your finances..."
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyPress={e => e.key === 'Enter' && handleSend()}
+          />
+          <SendButton onClick={handleSend} disabled={!input.trim()}>
+            <FiSend size={20} />
+          </SendButton>
+        </InputArea>
+      </ChatContainer>
+    </PageContainer>
+  );
 };
 
 export default AiAdvisor;

@@ -2,6 +2,7 @@ import React from 'react';
 import styled, { keyframes } from 'styled-components';
 import { FiTrendingUp, FiAlertCircle, FiCheckCircle, FiZap, FiTarget, FiAward } from 'react-icons/fi';
 import usePageTitle from '../hooks/usePageTitle';
+import authService from '../services/authService';
 
 const pulse = keyframes`
   0%, 100% { opacity: 1; }
@@ -138,88 +139,119 @@ const AiIndicator = styled.div`
 `;
 
 const AiInsights = () => {
-    usePageTitle('AI Insights | BudgetWise');
+  usePageTitle('AI Insights | BudgetWise');
 
-    const insights = [
-        {
-            type: 'Spending Alert',
-            title: 'Unusual Shopping Activity',
-            description: 'Your shopping expenses are 45% higher than last month. Consider reviewing recent purchases.',
-            icon: FiAlertCircle,
-            color: '#ef4444',
-            bg: '#fef2f2'
-        },
-        {
-            type: 'Savings Opportunity',
-            title: 'Subscription Optimization',
-            description: 'We found 3 subscriptions you rarely use. You could save ₹1,200/month by canceling them.',
-            icon: FiTarget,
-            color: '#10b981',
-            bg: '#ecfdf5'
-        },
-        {
-            type: 'Positive Trend',
-            title: 'Great Job on Food Budget!',
-            description: 'Your food expenses decreased by 20% this month. Keep up the good work!',
-            icon: FiCheckCircle,
-            color: '#10b981',
-            bg: '#ecfdf5'
-        },
-        {
-            type: 'Investment Tip',
-            title: 'Emergency Fund Status',
-            description: 'Your emergency fund covers 2.5 months of expenses. Aim for 6 months for better security.',
-            icon: FiTrendingUp,
-            color: '#3b82f6',
-            bg: '#eff6ff'
-        },
-        {
-            type: 'Goal Progress',
-            title: 'Vacation Fund Update',
-            description: 'You\'re 65% towards your vacation goal. At this rate, you\'ll reach it in 3 months!',
-            icon: FiAward,
-            color: '#f59e0b',
-            bg: '#fffbeb'
-        },
-        {
-            type: 'Smart Suggestion',
-            title: 'Bill Payment Reminder',
-            description: 'Your electricity bill is due in 3 days. Set up auto-pay to avoid late fees.',
-            icon: FiZap,
-            color: '#8b5cf6',
-            bg: '#f5f3ff'
-        }
-    ];
+  const [insights, setInsights] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
 
+  React.useEffect(() => {
+    const fetchInsights = async () => {
+      try {
+        const token = authService.getToken();
+        const response = await fetch('http://localhost:8081/api/chat/insights', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch insights');
+
+        const data = await response.json();
+        // Ensure data is an array
+        const insightsArray = Array.isArray(data) ? data : [];
+        setInsights(insightsArray);
+      } catch (err) {
+        console.error("Error fetching insights:", err);
+        setError("Could not generate insights at this time.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInsights();
+  }, []);
+
+  const getInsightStyle = (type, sentiment) => {
+    // Default styles
+    let style = { icon: FiZap, color: '#3b82f6', bg: '#eff6ff' };
+
+    const typeLower = type?.toLowerCase() || '';
+    const sentimentLower = sentiment?.toLowerCase() || '';
+
+    if (typeLower.includes('alert') || sentimentLower === 'negative') {
+      style = { icon: FiAlertCircle, color: '#ef4444', bg: '#fef2f2' };
+    } else if (typeLower.includes('savings') || typeLower.includes('positive') || sentimentLower === 'positive') {
+      style = { icon: FiCheckCircle, color: '#10b981', bg: '#ecfdf5' };
+    } else if (typeLower.includes('tip') || typeLower.includes('smart')) {
+      style = { icon: FiZap, color: '#8b5cf6', bg: '#f5f3ff' };
+    } else if (typeLower.includes('goal')) {
+      style = { icon: FiTarget, color: '#f59e0b', bg: '#fffbeb' };
+    } else if (typeLower.includes('trend')) {
+      style = { icon: FiTrendingUp, color: '#3b82f6', bg: '#eff6ff' };
+    }
+
+    return style;
+  };
+
+  if (loading) {
     return (
-        <PageContainer>
-            <PageHeader>
-                <AiIndicator>
-                    <FiZap size={16} /> AI-Powered Insights
-                </AiIndicator>
-                <PageTitle>AI Insights</PageTitle>
-                <PageSubtitle>Personalized recommendations based on your spending patterns</PageSubtitle>
-            </PageHeader>
-
-            <InsightsGrid>
-                {insights.map((insight, index) => (
-                    <InsightCard key={index} color={insight.color}>
-                        <InsightHeader>
-                            <InsightIcon bg={insight.bg} color={insight.color}>
-                                <insight.icon size={24} />
-                            </InsightIcon>
-                            <InsightMeta>
-                                <InsightType bg={insight.bg} color={insight.color}>{insight.type}</InsightType>
-                                <InsightTitle>{insight.title}</InsightTitle>
-                            </InsightMeta>
-                        </InsightHeader>
-                        <InsightDescription>{insight.description}</InsightDescription>
-                        <ActionButton color={insight.color}>View Details</ActionButton>
-                    </InsightCard>
-                ))}
-            </InsightsGrid>
-        </PageContainer>
+      <PageContainer>
+        <PageHeader>
+          <PageTitle>AI Insights</PageTitle>
+          <PageSubtitle>Analyzing your financial data...</PageSubtitle>
+        </PageHeader>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem' }}>
+          <AiIndicator>Generating Insights...</AiIndicator>
+        </div>
+      </PageContainer>
     );
+  }
+
+  if (error) {
+    return (
+      <PageContainer>
+        <PageHeader>
+          <PageTitle>AI Insights</PageTitle>
+        </PageHeader>
+        <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
+          {error}
+        </div>
+      </PageContainer>
+    );
+  }
+
+  return (
+    <PageContainer>
+      <PageHeader>
+        <AiIndicator>
+          <FiZap size={16} /> AI-Powered Insights
+        </AiIndicator>
+        <PageTitle>AI Insights</PageTitle>
+        <PageSubtitle>Personalized recommendations based on your spending patterns</PageSubtitle>
+      </PageHeader>
+
+      <InsightsGrid>
+        {insights.map((insight, index) => {
+          const style = getInsightStyle(insight.type, insight.sentiment);
+          return (
+            <InsightCard key={index} color={style.color}>
+              <InsightHeader>
+                <InsightIcon bg={style.bg} color={style.color}>
+                  <style.icon size={24} />
+                </InsightIcon>
+                <InsightMeta>
+                  <InsightType bg={style.bg} color={style.color}>{insight.type}</InsightType>
+                  <InsightTitle>{insight.title}</InsightTitle>
+                </InsightMeta>
+              </InsightHeader>
+              <InsightDescription>{insight.description}</InsightDescription>
+            </InsightCard>
+          );
+        })}
+      </InsightsGrid>
+    </PageContainer>
+  );
 };
 
 export default AiInsights;

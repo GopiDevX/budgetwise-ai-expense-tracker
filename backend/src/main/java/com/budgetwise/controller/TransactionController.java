@@ -81,6 +81,24 @@ public class TransactionController {
         return ResponseEntity.ok(transaction);
     }
 
+    @GetMapping("/monthly-summary")
+    public ResponseEntity<List<Map<String, Object>>> getMonthlySummary(Authentication authentication) {
+        Long userId = ((com.budgetwise.model.entity.User) authentication.getPrincipal()).getId();
+        return ResponseEntity.ok(transactionService.getMonthlyTransactionSummary(userId));
+    }
+
+    @GetMapping("/category-summary")
+    public ResponseEntity<List<Map<String, Object>>> getCategorySummary(Authentication authentication) {
+        Long userId = ((com.budgetwise.model.entity.User) authentication.getPrincipal()).getId();
+        return ResponseEntity.ok(transactionService.getCategoryExpenseSummary(userId));
+    }
+
+    @GetMapping("/weekly-savings")
+    public ResponseEntity<List<Map<String, Object>>> getWeeklySavings(Authentication authentication) {
+        Long userId = ((com.budgetwise.model.entity.User) authentication.getPrincipal()).getId();
+        return ResponseEntity.ok(transactionService.getWeeklySavings(userId));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteTransaction(
             @PathVariable Long id,

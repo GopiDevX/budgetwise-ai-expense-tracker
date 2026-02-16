@@ -1,6 +1,8 @@
 # Maven
 target/
 *.log
+.env
+debug.log
 
 # IDE
 .idea/
@@ -10,7 +12,41 @@ target/
 .project
 .settings/
 .factorypath
+*.ipr
+*.iws
+nbproject/
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Build Artifacts
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Local Data / Dumps
+models.json
+models_latest.json
+free_models.txt
+free_models_full.txt
+*.dump
+*.sql
+*.sqlite
+*.db
+
+# Logs & Temp
+*.tmp
+*.bak
+*.swp
+*.orig
+*~

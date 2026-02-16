@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import { FiHome, FiCreditCard, FiList, FiTag, FiBarChart2, FiCpu, FiMessageSquare, FiZap, FiSettings, FiLogOut, FiChevronLeft, FiChevronRight, FiMenu } from 'react-icons/fi';
+import { FiHome, FiCreditCard, FiList, FiTag, FiBarChart2, FiCpu, FiMessageSquare, FiZap, FiSettings, FiLogOut, FiChevronLeft, FiChevronRight, FiMenu, FiSun, FiMoon } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -242,6 +242,7 @@ const MobileOverlay = styled.div`
 
 const Sidebar = ({ isOpen, onClose, collapsed, setCollapsed }) => {
   const { logout, currentUser } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -289,6 +290,11 @@ const Sidebar = ({ isOpen, onClose, collapsed, setCollapsed }) => {
         </NavList>
 
         <UserSection>
+          <NavItem as="button" onClick={toggleTheme} style={{ width: '100%', border: 'none', background: 'transparent', cursor: 'pointer', marginBottom: '0.5rem' }}>
+            {isDarkMode ? <FiSun /> : <FiMoon />}
+            <NavLabel collapsed={collapsed}>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</NavLabel>
+          </NavItem>
+
           {currentUser && (
             <UserProfile>
               <Avatar>{currentUser.firstName ? currentUser.firstName[0].toUpperCase() : currentUser.email[0].toUpperCase()}</Avatar>

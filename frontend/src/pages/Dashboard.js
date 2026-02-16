@@ -3,13 +3,16 @@ import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { FiTrendingUp, FiDollarSign, FiCreditCard, FiPieChart, FiPlus, FiEdit2, FiTrash2, FiRefreshCw, FiEye, FiEyeOff, FiChevronDown, FiHeart, FiLoader, FiDownload, FiCamera, FiX, FiUser } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
 import TransactionForm from '../components/TransactionForm';
 import ReceiptScanner from '../components/ReceiptScanner';
 import ConfirmationModal from '../components/Common/ConfirmationModal';
+import Skeleton from '../components/Common/Skeleton';
 import usePageTitle from '../hooks/usePageTitle';
 import { useCurrency } from '../contexts/CurrencyContext';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
 import transactionService from '../services/transactionService';
 import categoryService from '../services/categoryService';
 import budgetService from '../services/budgetService';
@@ -117,35 +120,70 @@ const RefreshButton = styled.button`
 
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 `;
 
 const StatCard = styled.div`
-  background: white;
-  border-radius: 1.25rem;
-  padding: 1.75rem;
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  transition: all 0.2s ease;
-  border: 1px solid rgba(255,255,255,0.5);
+  background: var(--card-bg, white);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 1px solid var(--border-color, #e2e8f0);
   position: relative;
   overflow: hidden;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 
-      0 20px 25px -5px rgba(0, 0, 0, 0.1), 
-      0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+  [data-theme='dark'] & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
   }
 
   &::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 4px; bottom: 0;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
     background: ${props => {
+    switch (props.$variant) {
+      case 'primary': return 'linear-gradient(90deg, #4f46e5, #3b82f6)';
+      case 'success': return 'linear-gradient(90deg, #10b981, #34d399)';
+      case 'warning': return 'linear-gradient(90deg, #f59e0b, #fbbf24)';
+      case 'danger': return 'linear-gradient(90deg, #ef4444, #f87171)';
+      default: return 'transparent';
+    }
+  }};
+  }
+`;
+
+const StatHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+`;
+
+const StatIcon = styled.div`
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: ${props => {
+    switch (props.$variant) {
+      case 'primary': return '#eff6ff';
+      case 'success': return '#ecfdf5';
+      case 'warning': return '#fffbeb';
+      case 'danger': return '#fef2f2';
+      default: return '#f1f5f9';
+    }
+  }};
+  color: ${props => {
     switch (props.$variant) {
       case 'primary': return '#3b82f6';
       case 'success': return '#10b981';
@@ -154,65 +192,45 @@ const StatCard = styled.div`
       default: return '#64748b';
     }
   }};
-    opacity: 0.8;
+
+  [data-theme='dark'] & {
+    background: ${props => {
+    switch (props.$variant) {
+      case 'primary': return 'rgba(59, 130, 246, 0.1)';
+      case 'success': return 'rgba(16, 185, 129, 0.1)';
+      case 'warning': return 'rgba(245, 158, 11, 0.1)';
+      case 'danger': return 'rgba(239, 68, 68, 0.1)';
+      default: return 'rgba(100, 116, 139, 0.1)';
+    }
+  }};
   }
 `;
 
-const StatHeader = styled.div`
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
-  gap: 1rem;
-`;
-
-const StatIcon = styled.div`
-  width: 3rem;
-  height: 3rem;
-  border-radius: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: ${props => {
-    switch (props.$variant) {
-      case 'primary': return 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)';
-      case 'success': return 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)';
-      case 'warning': return 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)';
-      case 'danger': return 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
-      default: return '#f1f5f9';
-    }
-  }};
-  color: ${props => {
-    switch (props.$variant) {
-      case 'primary': return '#2563eb';
-      case 'success': return '#16a34a';
-      case 'warning': return '#d97706';
-      case 'danger': return '#dc2626';
-      default: return '#64748b';
-    }
-  }};
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-`;
-
 const StatInfo = styled.div`
-  flex: 1;
+  text-align: right;
 `;
 
 const StatTitle = styled.h3`
   font-size: 0.875rem;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--text-secondary, #64748b);
   margin: 0 0 0.5rem 0;
+  font-weight: 500;
+
+  [data-theme='dark'] & {
+    color: #94a3b8;
+  }
 `;
 
 const StatValue = styled.p`
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-size: 1.5rem;
+  color: var(--text-primary, #1e293b);
   margin: 0;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+
+  [data-theme='dark'] & {
+    color: #f1f5f9;
+  }
 `;
 
 const StatChange = styled.span`
@@ -242,6 +260,79 @@ const ChartsSection = styled.div`
   }
 `;
 
+const BudgetAlertsContainer = styled.div`
+  margin-bottom: 2rem;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border-radius: 1rem;
+  border: 1px solid #fcd34d;
+  box-shadow: 0 4px 6px -1px rgba(251, 191, 36, 0.1);
+
+  [data-theme='dark'] & {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(180, 83, 9, 0.1) 100%);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+`;
+
+const AlertsHeader = styled.h3`
+  margin: 0 0 1rem 0;
+  color: #92400e;
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  [data-theme='dark'] & {
+    color: #fbbf24;
+  }
+`;
+
+const AlertsList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const AlertItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: ${props => props.status === 'over' ? '#fef2f2' : '#fffbeb'};
+  border-radius: 0.75rem;
+  border: 1px solid ${props => props.status === 'over' ? '#fecaca' : '#fde68a'};
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateX(4px);
+  }
+
+  [data-theme='dark'] & {
+    background: ${props => props.status === 'over' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)'};
+    border-color: ${props => props.status === 'over' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(245, 158, 11, 0.3)'};
+  }
+`;
+
+const AlertCategory = styled.span`
+  font-weight: 600;
+  color: #1e293b;
+
+  [data-theme='dark'] & {
+    color: #f1f5f9;
+  }
+`;
+
+const AlertMessage = styled.span`
+  color: ${props => props.status === 'over' ? '#dc2626' : '#d97706'};
+  font-weight: 600;
+  font-size: 0.9rem;
+
+  [data-theme='dark'] & {
+    color: ${props => props.status === 'over' ? '#f87171' : '#fbbf24'};
+  }
+`;
+
 const ChartCard = styled.div`
   background: white;
   border-radius: 1.25rem;
@@ -261,9 +352,13 @@ const ChartHeader = styled.div`
 
 const ChartTitle = styled.h3`
   font-size: 1.125rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  margin: 0 0 1.5rem 0;
+
+  [data-theme='dark'] & {
+    color: #f1f5f9;
+  }
 `;
 
 const ChartContainer = styled.div`
@@ -272,10 +367,17 @@ const ChartContainer = styled.div`
 `;
 
 const TransactionsSection = styled.div`
-  background: white;
+  background: var(--card-bg, white);
   border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color, #e2e8f0);
+
+  [data-theme='dark'] & {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+  }
 `;
 
 const SectionHeader = styled.div`
@@ -288,15 +390,22 @@ const SectionHeader = styled.div`
 const SectionTitle = styled.h2`
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary, #1e293b);
   margin: 0;
+
+  [data-theme='dark'] & {
+    color: #f1f5f9;
+  }
 `;
 
 const ViewAllLink = styled(Link)`
-  color: #2563eb;
+  color: #3b82f6;
   font-size: 0.875rem;
   font-weight: 500;
   text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   
   &:hover {
     text-decoration: underline;
@@ -304,31 +413,52 @@ const ViewAllLink = styled(Link)`
 `;
 
 const TransactionsList = styled.div`
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 `;
 
 const TransactionItem = styled.div`
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: 1rem;
-  border-radius: 0.5rem;
-  background-color: white;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  background: var(--bg-secondary, #f8fafc);
+  border-radius: 0.75rem;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+
+  [data-theme='dark'] & {
+    background: #0f172a;
+    border-color: #334155;
+  }
+
+  &:hover {
+    transform: translateX(4px);
+    background: var(--hover-bg, #f1f5f9);
+    border-color: #cbd5e1;
+
+    [data-theme='dark'] & {
+      background: #1e293b;
+      border-color: #475569;
+    }
+  }
 `;
 
 const TransactionIcon = styled.div`
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background-color: ${props => props.type === 'income' ? '#d1fae5' : '#fee2e2'};
-  color: ${props => props.type === 'income' ? '#059669' : '#dc2626'};
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-right: 1rem;
-  flex-shrink: 0;
+  font-size: 1.25rem;
+  background: ${props => props.type === 'income' ? '#ecfdf5' : '#fef2f2'};
+  color: ${props => props.type === 'income' ? '#10b981' : '#ef4444'};
+
+  [data-theme='dark'] & {
+    background: ${props => props.type === 'income' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)'};
+  }
 `;
 
 const TransactionInfo = styled.div`
@@ -345,11 +475,20 @@ const ErrorMessage = styled.div`
   border: 1px solid #fecaca;
 `;
 
-const TransactionTitle = styled.p`
-  font-size: 1rem;
-  font-weight: 500;
-  color: #1e293b;
-  margin-bottom: 0.25rem;
+const TransactionDetails = styled.div`
+  flex: 1;
+  margin-left: 1rem;
+`;
+
+const TransactionTitle = styled.h4`
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary, #1e293b);
+  margin: 0 0 0.25rem 0;
+
+  [data-theme='dark'] & {
+    color: #f1f5f9;
+  }
 `;
 
 const TransactionCategory = styled.p`
@@ -357,6 +496,17 @@ const TransactionCategory = styled.p`
   font-weight: 400;
   color: #64748b;
   margin-bottom: 0.5rem;
+`;
+
+const TransactionMeta = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #64748b);
+
+  [data-theme='dark'] & {
+    color: #94a3b8;
+  }
 `;
 
 const TransactionDate = styled.p`
@@ -478,6 +628,7 @@ const Dashboard = () => {
   usePageTitle('Dashboard | BudgetWise');
   const { format: formatCurrency, symbol: currencySymbol } = useCurrency();
   const { currentUser } = useAuth();
+  const { isDarkMode } = useTheme();
 
   const [transactions, setTransactions] = useState([]);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -904,15 +1055,12 @@ const Dashboard = () => {
           pointerEvents: 'none'
         }} />
 
-        <WelcomeSection>
+        <WelcomeSection as={motion.div} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div>
             <WelcomeTitle>Welcome back, {currentUser?.firstName || 'User'}! 👋</WelcomeTitle>
             <WelcomeSubtitle>Here's what's happening with your finance today.</WelcomeSubtitle>
           </div>
           <HeaderControls>
-            <DropdownButton onClick={() => setShowScanner(true)}>
-              <FiCamera /> Scan Receipt
-            </DropdownButton>
             <IconButton onClick={refreshTransactions} title="Refresh Data">
               <FiRefreshCw />
             </IconButton>
@@ -966,140 +1114,104 @@ const Dashboard = () => {
           />
         )}
 
+        {showScanner && (
+          <ReceiptScanner
+            onScanComplete={(data) => {
+              setScannedData(data);
+              setShowScanner(false);
+              setShowForm(true);
+            }}
+            onClose={() => setShowScanner(false)}
+          />
+        )}
+
         {/* Stats Grid */}
-        <StatsGrid>
-          <StatCard $variant="primary">
+        <StatsGrid as={motion.div} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, staggerChildren: 0.1 }}>
+          <StatCard $variant="primary" as={motion.div} whileHover={{ y: -5 }}>
             <StatHeader>
               <StatIcon $variant="primary">
                 <FiDollarSign size={24} />
               </StatIcon>
               <StatInfo>
-                <StatTitle>Monthly Income</StatTitle>
-                <StatValue>{showBalances ? formatCurrency(monthlyIncome) : '****'}</StatValue>
+                <StatTitle>Total Balance</StatTitle>
+                <StatValue>{showBalances ? formatCurrency(totalBalance) : '••••••'}</StatValue>
               </StatInfo>
             </StatHeader>
-            <StatChange $positive={incomeChange >= 0}>
-              <FiTrendingUp size={16} style={{ transform: incomeChange < 0 ? 'rotate(180deg)' : 'none' }} />
-              {Math.abs(incomeChange)}% from last month
-            </StatChange>
           </StatCard>
 
-          <StatCard $variant="danger">
+          <StatCard $variant="success" as={motion.div} whileHover={{ y: -5 }}>
+            <StatHeader>
+              <StatIcon $variant="success">
+                <FiTrendingUp size={24} />
+              </StatIcon>
+              <StatInfo>
+                <StatTitle>Monthly Income</StatTitle>
+                <StatValue>{showBalances ? formatCurrency(monthlyIncome) : '••••••'}</StatValue>
+              </StatInfo>
+            </StatHeader>
+          </StatCard>
+
+          <StatCard $variant="danger" as={motion.div} whileHover={{ y: -5 }}>
             <StatHeader>
               <StatIcon $variant="danger">
                 <FiCreditCard size={24} />
               </StatIcon>
               <StatInfo>
                 <StatTitle>Monthly Expenses</StatTitle>
-                <StatValue>{showBalances ? formatCurrency(monthlyExpenses) : '****'}</StatValue>
+                <StatValue>{showBalances ? formatCurrency(monthlyExpenses) : '••••••'}</StatValue>
               </StatInfo>
             </StatHeader>
-            <StatChange $positive={expensesChange <= 0}>
-              {/* Note: Lower expenses is "positive" usually, but for consistency we use red for expenses going up */}
-              <FiTrendingUp size={16} style={{ transform: expensesChange > 0 ? 'none' : 'rotate(180deg)' }} />
-              {Math.abs(expensesChange)}% from last month
-            </StatChange>
           </StatCard>
 
-          <StatCard $variant="success">
+          <StatCard $variant="warning" as={motion.div} whileHover={{ y: -5 }}>
             <StatHeader>
-              <StatIcon $variant="success">
+              <StatIcon $variant="warning">
                 <FiPieChart size={24} />
               </StatIcon>
               <StatInfo>
-                <StatTitle>Total Balance</StatTitle>
-                <StatValue>{showBalances ? formatCurrency(totalBalance) : '****'}</StatValue>
+                <StatTitle>Total Savings</StatTitle>
+                <StatValue>{showBalances ? formatCurrency(savings) : '••••••'}</StatValue>
               </StatInfo>
             </StatHeader>
-            <StatChange $positive={savingsChange >= 0}>
-              <FiTrendingUp size={16} style={{ transform: savingsChange < 0 ? 'rotate(180deg)' : 'none' }} />
-              {Math.abs(savingsChange)}% from last month
-            </StatChange>
-          </StatCard>
-
-          <StatCard $variant="warning">
-            <StatHeader>
-              <StatIcon $variant="warning">
-                <FiHeart size={24} />
-              </StatIcon>
-              <StatInfo>
-                <StatTitle>Financial Health</StatTitle>
-                <StatValue style={{ fontSize: '1.5rem' }}>
-                  {monthlyIncome > 0 && monthlyExpenses / monthlyIncome < 0.5 ? 'Excellent' :
-                    monthlyIncome > 0 && monthlyExpenses / monthlyIncome < 0.7 ? 'Good' :
-                      monthlyIncome > 0 && monthlyExpenses / monthlyIncome < 0.9 ? 'Fair' : 'Needs Attention'}
-                </StatValue>
-              </StatInfo>
-            </StatHeader>
-            <div style={{
-              width: '100%',
-              height: '6px',
-              background: '#e2e8f0',
-              borderRadius: '3px',
-              marginTop: '0.75rem',
-              overflow: 'hidden'
-            }}>
-              <div style={{
-                width: `${monthlyIncome > 0 ? Math.max(10, Math.min(100, 100 - (monthlyExpenses / monthlyIncome * 100))) : 50}%`,
-                height: '100%',
-                background: monthlyIncome > 0 && monthlyExpenses / monthlyIncome < 0.5 ? 'linear-gradient(90deg, #10b981, #34d399)' :
-                  monthlyIncome > 0 && monthlyExpenses / monthlyIncome < 0.7 ? 'linear-gradient(90deg, #f59e0b, #fbbf24)' :
-                    'linear-gradient(90deg, #ef4444, #f87171)',
-                borderRadius: '3px',
-                transition: 'width 0.5s ease'
-              }} />
-            </div>
           </StatCard>
         </StatsGrid>
 
         {/* Budget Alerts Section */}
+        {/* Budget Alerts Section */}
         {budgetAlerts.length > 0 && (
-          <div style={{
-            marginBottom: '2rem',
-            padding: '1.25rem',
-            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-            borderRadius: '1rem',
-            border: '1px solid #f59e0b'
-          }}>
-            <h3 style={{ margin: '0 0 1rem 0', color: '#92400e', fontSize: '1rem', fontWeight: 600 }}>
-              ⚠️ Budget Alerts
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <BudgetAlertsContainer
+            as={motion.div}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <AlertsHeader>
+              <span role="img" aria-label="warning">⚠️</span> Budget Alerts
+            </AlertsHeader>
+            <AlertsList>
               {budgetAlerts.map(alert => (
-                <div key={alert.categoryId} style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '0.75rem 1rem',
-                  background: alert.status === 'over' ? '#fef2f2' : '#fffbeb',
-                  borderRadius: '0.5rem',
-                  border: `1px solid ${alert.status === 'over' ? '#ef4444' : '#f59e0b'}`
-                }}>
-                  <span style={{ fontWeight: 500, color: '#0f172a' }}>
+                <AlertItem key={alert.categoryId} status={alert.status}>
+                  <AlertCategory>
                     {alert.categoryName}
-                  </span>
-                  <span style={{
-                    color: alert.status === 'over' ? '#dc2626' : '#d97706',
-                    fontWeight: 600,
-                    fontSize: '0.9rem'
-                  }}>
+                  </AlertCategory>
+                  <AlertMessage status={alert.status}>
                     {alert.status === 'over'
                       ? `${currencySymbol}${Math.abs(alert.remaining).toFixed(0)} over budget`
                       : `${currencySymbol}${alert.remaining.toFixed(0)} remaining (${alert.percentage.toFixed(0)}% used)`}
-                  </span>
-                </div>
+                  </AlertMessage>
+                </AlertItem>
               ))}
-            </div>
+            </AlertsList>
             <Link to="/settings" style={{
               display: 'inline-block',
               marginTop: '0.75rem',
-              color: '#92400e',
+              color: 'var(--text-secondary, #64748b)',
               fontSize: '0.85rem',
               textDecoration: 'underline'
             }}>
               Manage budgets →
             </Link>
-          </div>
+          </BudgetAlertsContainer>
         )}
 
         <ChartsSection>
@@ -1110,26 +1222,29 @@ const Dashboard = () => {
             <ChartContainer>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyExpensesData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDarkMode ? '#334155' : '#f1f5f9'} />
                   <XAxis
                     dataKey="name"
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }}
                   />
                   <YAxis
                     axisLine={false}
                     tickLine={false}
-                    tick={{ fill: '#64748b', fontSize: 12 }}
+                    tick={{ fill: isDarkMode ? '#94a3b8' : '#64748b', fontSize: 12 }}
                     tickFormatter={(value) => `${currencySymbol}${value}`}
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
+                      backgroundColor: isDarkMode ? '#1e293b' : 'white',
                       borderRadius: '0.5rem',
-                      border: '1px solid #e2e8f0',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      border: isDarkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      color: isDarkMode ? '#f1f5f9' : '#1e293b'
                     }}
+                    itemStyle={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}
+                    cursor={{ fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
                     formatter={(value) => [formatCurrency(value), 'Amount']}
                   />
                   <Bar
@@ -1168,15 +1283,15 @@ const Dashboard = () => {
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'white',
+                      backgroundColor: isDarkMode ? '#1e293b' : 'white',
                       borderRadius: '0.5rem',
-                      border: '1px solid #e2e8f0',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      border: isDarkMode ? '1px solid #334155' : '1px solid #e2e8f0',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      color: isDarkMode ? '#f1f5f9' : '#1e293b'
                     }}
-                    formatter={(value, name, props) => {
-                      const { payload } = props;
-                      return [formatCurrency(payload.amount), payload.name];
-                    }}
+                    itemStyle={{ color: isDarkMode ? '#f1f5f9' : '#1e293b' }}
+                    cursor={{ fill: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)' }}
+                    formatter={(value) => [formatCurrency(value), 'Amount']}
                   />
                   <Legend
                     layout="horizontal"

@@ -107,10 +107,10 @@ const NavLinks = styled.div`
 `;
 
 const NavLink = styled.a`
-  color: #475569;
+  color: #1e293b;
   text-decoration: none;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: color 0.25s;
   position: relative;
   padding-bottom: 2px;
@@ -173,47 +173,41 @@ const HeroSection = styled.section`
   padding: 120px 2rem 80px;
   position: relative;
   overflow: hidden;
-  background: radial-gradient(ellipse at 60% 50%, #eef4ff 0%, #ffffff 55%);
+  background: #f8fafc;
 `;
 
+/* Blobs — reduced blur for sharpness */
 const Blob = styled.div`
   position: absolute;
   border-radius: 50%;
-  filter: blur(70px);
+  filter: blur(25px);
   z-index: 0;
   pointer-events: none;
 `;
 
 const Blob1 = styled(Blob)`
   width: 500px; height: 500px;
-  background: rgba(37,99,235,0.08);
+  background: rgba(37,99,235,0.09);
   top: -100px; right: -80px;
-  animation: ${blobAnim1} 12s ease-in-out infinite;
 `;
 
 const Blob2 = styled(Blob)`
-  width: 400px; height: 400px;
-  background: rgba(139,92,246,0.06);
-  bottom: -80px; left: -80px;
-  animation: ${blobAnim2} 15s ease-in-out infinite;
+  width: 380px; height: 380px;
+  background: rgba(139,92,246,0.07);
+  bottom: -60px; left: -60px;
 `;
 
-const Blob3 = styled(Blob)`
-  width: 300px; height: 300px;
-  background: rgba(6,182,212,0.05);
-  top: 40%; left: 35%;
-  animation: ${blobAnim1} 18s ease-in-out infinite reverse;
-`;
+const Blob3 = styled(Blob)`display: none;`;
 
 const GridPattern = styled.div`
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(rgba(37,99,235,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(37,99,235,0.018) 1px, transparent 1px);
+  background-image:
+    linear-gradient(rgba(37,99,235,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37,99,235,0.04) 1px, transparent 1px);
   background-size: 60px 60px;
   z-index: 0;
   pointer-events: none;
-  mask-image: radial-gradient(ellipse at center, black 40%, transparent 100%);
 `;
 
 const HeroInner = styled.div`
@@ -259,6 +253,7 @@ const HeroTitle = styled.h1`
   line-height: 1.1;
   letter-spacing: -0.035em;
   color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
   margin: 0 0 1.5rem;
 
   span {
@@ -273,7 +268,8 @@ const HeroTitle = styled.h1`
 
 const HeroSubtitle = styled.p`
   font-size: 1.15rem;
-  color: #64748b;
+  color: #334155;
+  -webkit-text-fill-color: #334155;
   line-height: 1.75;
   max-width: 480px;
   margin: 0 0 2.5rem;
@@ -353,9 +349,10 @@ const ProofAvatar = styled.div`
 
 const ProofText = styled.p`
   font-size: 0.875rem;
-  color: #64748b;
+  color: #334155;
+  -webkit-text-fill-color: #334155;
   margin: 0;
-  strong { color: #0f172a; }
+  strong { color: #0f172a; font-weight: 700; }
 `;
 
 /* ─── HERO MOCKUP ─────────────────────────────────────────────── */
@@ -381,16 +378,13 @@ const MockupWrap = styled.div`
 `;
 
 const DashCard = styled.div`
-  background: rgba(255,255,255,0.93);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(37,99,235,0.08);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 20px;
   box-shadow:
-    0 30px 60px rgba(37,99,235,0.14),
-    0 10px 24px rgba(37,99,235,0.06),
-    0 2px 6px rgba(0,0,0,0.04),
-    inset 0 1px 0 rgba(255,255,255,0.8);
+    0 4px 6px rgba(15,23,42,0.04),
+    0 20px 48px rgba(15,23,42,0.10),
+    0 1px 2px rgba(15,23,42,0.06);
   padding: 1.5rem;
   width: 420px;
 `;
@@ -436,13 +430,14 @@ const DashStat = styled.div`
   background: ${props => props.$primary ? 'linear-gradient(135deg, #2563eb, #1d4ed8)' : '#f8fafc'};
   border-radius: 14px;
   padding: 1rem;
-  border: ${props => props.$primary ? 'none' : '1px solid #f1f5f9'};
+  border: ${props => props.$primary ? 'none' : '1px solid #e2e8f0'};
 `;
 
 const DashStatLabel = styled.div`
   font-size: 0.7rem;
   font-weight: 600;
-  color: ${props => props.$primary ? 'rgba(255,255,255,0.8)' : '#94a3b8'};
+  color: ${props => props.$primary ? 'rgba(255,255,255,0.9)' : '#475569'};
+  -webkit-text-fill-color: ${props => props.$primary ? 'rgba(255,255,255,0.9)' : '#475569'};
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
@@ -457,7 +452,8 @@ const DashStatValue = styled.div`
 const DashStatChange = styled.div`
   font-size: 0.7rem;
   font-weight: 600;
-  color: ${props => props.$up ? '#10b981' : (props.$primary ? 'rgba(255,255,255,0.7)' : '#94a3b8')};
+  color: ${props => props.$up ? '#059669' : (props.$primary ? 'rgba(255,255,255,0.8)' : '#475569')};
+  -webkit-text-fill-color: ${props => props.$up ? '#059669' : (props.$primary ? 'rgba(255,255,255,0.8)' : '#475569')};
   margin-top: 0.125rem;
 `;
 
@@ -486,7 +482,8 @@ const DashTransactions = styled.div`
 const DashTxTitle = styled.div`
   font-size: 0.75rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: #475569;
+  -webkit-text-fill-color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.25rem;
@@ -519,7 +516,7 @@ const DashTxIcon = styled.div`
 
 const DashTxInfo = styled.div`
   .name { font-size: 0.8rem; font-weight: 600; color: #0f172a; }
-  .date { font-size: 0.7rem; color: #94a3b8; }
+  .date { font-size: 0.7rem; color: #475569; }
 `;
 
 const DashTxAmount = styled.div`
@@ -533,11 +530,11 @@ const AIBadge = styled.div`
   position: absolute;
   top: -30px;
   right: -30px;
-  background: white;
-  border: 1px solid rgba(37,99,235,0.1);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
   padding: 0.75rem 1rem;
-  box-shadow: 0 10px 30px rgba(37,99,235,0.12);
+  box-shadow: 0 4px 20px rgba(15,23,42,0.12);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -557,7 +554,7 @@ const AIBadgeIcon = styled.div`
 
 const AIBadgeText = styled.div`
   font-size: 0.75rem;
-  .label { color: #94a3b8; font-weight: 500; }
+  .label { color: #475569; font-weight: 600; }
   .value { color: #0f172a; font-weight: 700; }
 `;
 
@@ -566,11 +563,11 @@ const SavingsBadge = styled.div`
   position: absolute;
   bottom: -20px;
   left: -30px;
-  background: white;
-  border: 1px solid rgba(16,185,129,0.15);
+  background: #ffffff;
+  border: 1px solid #d1fae5;
   border-radius: 14px;
   padding: 0.75rem 1rem;
-  box-shadow: 0 10px 30px rgba(16,185,129,0.1);
+  box-shadow: 0 4px 20px rgba(15,23,42,0.10);
   display: flex;
   align-items: center;
   gap: 0.625rem;
@@ -583,8 +580,8 @@ const SavingsEmoji = styled.div`
 
 const SavingsText = styled.div`
   font-size: 0.75rem;
-  .label { color: #94a3b8; font-weight: 500; }
-  .value { color: #10b981; font-weight: 700; font-size: 0.9rem; }
+  .label { color: #475569; font-weight: 600; }
+  .value { color: #059669; font-weight: 700; font-size: 0.9rem; }
 `;
 
 /* ─── STATS BAR ───────────────────────────────────────────────── */
@@ -622,14 +619,15 @@ const StatNumber = styled.div`
 
 const StatLabel = styled.div`
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: #cbd5e1;
+  -webkit-text-fill-color: #cbd5e1;
   font-weight: 500;
 `;
 
 /* ─── FEATURES ────────────────────────────────────────────────── */
 const FeaturesSection = styled.section`
   padding: 7rem 2rem;
-  background: white;
+  background: #f1f5f9;
 `;
 
 const SectionHeader = styled.div`
@@ -655,13 +653,15 @@ const SectionTitle = styled.h2`
   font-size: clamp(1.75rem, 3.5vw, 2.5rem);
   font-weight: 800;
   color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
   line-height: 1.2;
   letter-spacing: -0.025em;
   margin: 0 0 1rem;
 `;
 
 const SectionSubtitle = styled.p`
-  color: #64748b;
+  color: #334155;
+  -webkit-text-fill-color: #334155;
   font-size: 1.1rem;
   line-height: 1.7;
   margin: 0;
@@ -679,20 +679,21 @@ const FeaturesGrid = styled.div`
 `;
 
 const FeatureCard = styled.div`
-  background: white;
-  border: 1px solid #f1f5f9;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 1.25rem;
   padding: 2rem;
-  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 1px 4px rgba(15,23,42,0.05), 0 4px 12px rgba(15,23,42,0.06);
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
   cursor: default;
 
   &:hover {
-    border-color: rgba(37,99,235,0.18);
+    border-color: #93c5fd;
     box-shadow:
-      0 0 0 1px rgba(37,99,235,0.06),
-      0 20px 40px -10px rgba(37,99,235,0.12),
-      0 6px 16px rgba(37,99,235,0.05);
-    transform: translateY(-5px) scale(1.02);
+      0 0 0 3px rgba(37,99,235,0.08),
+      0 20px 40px -8px rgba(37,99,235,0.14),
+      0 8px 16px rgba(37,99,235,0.08);
+    transform: translateY(-6px);
   }
 `;
 
@@ -700,31 +701,31 @@ const FeatureIconWrap = styled.div`
   width: 3rem;
   height: 3rem;
   border-radius: 12px;
-  background: ${props => props.$bg || 'rgba(37,99,235,0.1)'};
+  background: ${props => (props.$bg || 'rgba(37,99,235,0.12)').replace('0.1)', '0.15)')};
   color: ${props => props.$color || '#2563eb'};
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 1.25rem;
-  box-shadow: 0 2px 8px ${props => (props.$bg || 'rgba(37,99,235,0.1)').replace(')', ', 0.5)').replace('rgba(', 'rgba(')};
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition: transform 0.3s ease;
 
   ${FeatureCard}:hover & {
-    transform: scale(1.08);
-    box-shadow: 0 4px 16px ${props => (props.$bg || 'rgba(37,99,235,0.1)').replace('0.1)', '0.3)')}
+    transform: scale(1.1);
   }
 `;
 
 const FeatureTitle = styled.h3`
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #0f172a;
-  margin: 0 0 0.625rem;
+  -webkit-text-fill-color: #0f172a;
+  margin: 0 0 0.5rem;
 `;
 
 const FeatureText = styled.p`
-  font-size: 0.9rem;
-  color: #64748b;
+  font-size: 0.875rem;
+  color: #334155;
+  -webkit-text-fill-color: #334155;
   line-height: 1.65;
   margin: 0;
 `;
@@ -732,7 +733,7 @@ const FeatureText = styled.p`
 /* ─── HOW IT WORKS ────────────────────────────────────────────── */
 const HowSection = styled.section`
   padding: 7rem 2rem;
-  background: radial-gradient(ellipse at 50% 0%, #eef4ff 0%, #f8fafc 60%);
+  background: #ffffff;
 `;
 
 const StepsRow = styled.div`
@@ -785,12 +786,14 @@ const StepTitle = styled.h3`
   font-size: 1.1rem;
   font-weight: 700;
   color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
   margin: 0 0 0.5rem;
 `;
 
 const StepText = styled.p`
   font-size: 0.9rem;
-  color: #64748b;
+  color: #334155;
+  -webkit-text-fill-color: #334155;
   line-height: 1.6;
   margin: 0;
 `;
@@ -798,7 +801,7 @@ const StepText = styled.p`
 /* ─── TESTIMONIALS ────────────────────────────────────────────── */
 const TestimonialsSection = styled.section`
   padding: 7rem 2rem;
-  background: white;
+  background: #f1f5f9;
 `;
 
 const TestiGrid = styled.div`
@@ -813,16 +816,17 @@ const TestiGrid = styled.div`
 `;
 
 const TestiCard = styled.div`
-  background: white;
-  border: 1px solid #f1f5f9;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   border-radius: 1.25rem;
   padding: 1.75rem;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.06);
   transition: all 0.3s;
 
   &:hover {
-    box-shadow: 0 16px 40px rgba(37,99,235,0.08);
-    border-color: rgba(37,99,235,0.12);
-    transform: translateY(-3px);
+    box-shadow: 0 12px 32px rgba(37,99,235,0.12);
+    border-color: #93c5fd;
+    transform: translateY(-4px);
   }
 `;
 
@@ -834,7 +838,8 @@ const Stars = styled.div`
 
 const TestiQuote = styled.p`
   font-size: 0.9rem;
-  color: #475569;
+  color: #1e293b;
+  -webkit-text-fill-color: #1e293b;
   line-height: 1.7;
   margin: 0 0 1.25rem;
 `;
@@ -861,11 +866,13 @@ const TestiName = styled.div`
   font-size: 0.875rem;
   font-weight: 700;
   color: #0f172a;
+  -webkit-text-fill-color: #0f172a;
 `;
 
 const TestiRole = styled.div`
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: #475569;
+  -webkit-text-fill-color: #475569;
 `;
 
 /* ─── CTA SECTION ─────────────────────────────────────────────── */
@@ -902,7 +909,8 @@ const CtaTitle = styled.h2`
 
 const CtaSubtitle = styled.p`
   font-size: 1.1rem;
-  color: #94a3b8;
+  color: #cbd5e1;
+  -webkit-text-fill-color: #cbd5e1;
   line-height: 1.7;
   margin: 0 0 2.5rem;
 `;
@@ -981,8 +989,9 @@ const CtaTrustItem = styled.div`
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #64748b;
-  svg { color: #2563eb; }
+  color: #94a3b8;
+  -webkit-text-fill-color: #94a3b8;
+  svg { color: #60a5fa; }
 `;
 
 /* ─── FOOTER ──────────────────────────────────────────────────── */
@@ -1036,7 +1045,8 @@ const FooterLogoText = styled.span`
 `;
 
 const FooterTagline = styled.p`
-  color: #64748b;
+  color: #94a3b8;
+  -webkit-text-fill-color: #94a3b8;
   font-size: 0.9rem;
   line-height: 1.6;
   margin: 0;
@@ -1056,24 +1066,24 @@ const FooterColTitle = styled.div`
 
 const FooterLink = styled(Link)`
   display: block;
-  color: #4b5563;
+  color: #94a3b8;
   text-decoration: none;
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
   transition: color 0.25s, transform 0.25s;
 
-  &:hover { color: #93c5fd; transform: translateX(3px); }
+  &:hover { color: #e2e8f0; transform: translateX(3px); }
 `;
 
 const FooterA = styled.a`
   display: block;
-  color: #4b5563;
+  color: #94a3b8;
   text-decoration: none;
   font-size: 0.875rem;
   margin-bottom: 0.75rem;
   transition: color 0.25s, transform 0.25s;
 
-  &:hover { color: #93c5fd; transform: translateX(3px); }
+  &:hover { color: #e2e8f0; transform: translateX(3px); }
 `;
 
 const FooterBottom = styled.div`
@@ -1088,7 +1098,8 @@ const FooterBottom = styled.div`
 `;
 
 const Copyright = styled.p`
-  color: #475569;
+  color: #64748b;
+  -webkit-text-fill-color: #64748b;
   font-size: 0.875rem;
   margin: 0;
 `;

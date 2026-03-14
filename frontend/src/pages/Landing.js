@@ -52,6 +52,7 @@ const Page = styled.div`
   color: #0f172a;
   overflow-x: hidden;
   background: #ffffff;
+  animation: ${fadeIn} 0.6s ease;
 `;
 
 /* ─── NAVBAR ──────────────────────────────────────────────────── */
@@ -221,6 +222,24 @@ const HeroInner = styled.div`
   position: relative;
   z-index: 1;
 
+  &::before {
+    content: '';
+    position: absolute;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(
+      circle,
+      rgba(37, 99, 235, 0.12) 0%,
+      rgba(139, 92, 246, 0.08) 35%,
+      transparent 70%
+    );
+    top: -200px;
+    left: -200px;
+    z-index: -1;
+    filter: blur(40px);
+    pointer-events: none;
+  }
+
   @media (max-width: 1024px) {
     grid-template-columns: 1fr;
     text-align: center;
@@ -252,8 +271,8 @@ const HeroTitle = styled.h1`
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.035em;
-  color: #0f172a;
-  -webkit-text-fill-color: #0f172a;
+  color: #020617;
+  -webkit-text-fill-color: #020617;
   margin: 0 0 1.5rem;
 
   span {
@@ -299,7 +318,26 @@ const PrimaryBtn = styled(Link)`
   text-decoration: none;
   box-shadow: 0 8px 25px rgba(37,99,235,0.3);
   transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
 
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+      120deg,
+      transparent,
+      rgba(255, 255, 255, 0.4),
+      transparent
+    );
+    transition: left 0.6s;
+  }
+
+  &:hover::before { left: 130%; }
   &:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(37,99,235,0.4); }
   svg { transition: transform 0.3s; }
   &:hover svg { transform: translateX(3px); }
@@ -387,6 +425,23 @@ const DashCard = styled.div`
     0 1px 2px rgba(15,23,42,0.06);
   padding: 1.5rem;
   width: 420px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, #2563eb, #8b5cf6, #06b6d4);
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.3;
+    pointer-events: none;
+  }
 `;
 
 const DashHeader = styled.div`

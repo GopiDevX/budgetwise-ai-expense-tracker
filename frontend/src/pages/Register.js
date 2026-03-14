@@ -404,13 +404,14 @@ const InputIcon = styled.div`
 
 const Input = styled.input`
   width: 100%;
-  padding: 0.65rem 1rem 0.65rem 2.875rem;
+  padding: 0.65rem ${props => props.$hasToggle ? '3rem' : '1rem'} 0.65rem 2.875rem;
   background: #ffffff;
   border: 1px solid ${props => props.$hasError ? '#ef4444' : '#e2e8f0'};
   border-radius: 14px;
   font-size: 0.95rem;
   color: #0f172a;
   transition: all 0.3s ease;
+  box-sizing: border-box;
   
   &:focus {
     outline: none;
@@ -1304,7 +1305,7 @@ const Register = () => {
                   <Label htmlFor="password">Password</Label>
                   <InputWrapper>
                     <InputIcon style={{ color: errors.password ? '#dc2626' : undefined }}><FiLock /></InputIcon>
-                    <Input id="password" name="password" type={showPassword ? 'text' : 'password'} placeholder="Create a password" value={formData.password} onChange={handleChange} $hasError={!!errors.password} />
+                    <Input id="password" name="password" type={showPassword ? 'text' : 'password'} placeholder="Create a password" value={formData.password} onChange={handleChange} $hasError={!!errors.password} $hasToggle />
                     <PasswordToggle type="button" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <FiEyeOff /> : <FiEye />}
                     </PasswordToggle>
@@ -1324,7 +1325,7 @@ const Register = () => {
                   <Label htmlFor="confirmPassword">Confirm Password</Label>
                   <InputWrapper>
                     <InputIcon style={{ color: errors.confirmPassword ? '#dc2626' : undefined }}><FiLock /></InputIcon>
-                    <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repeat password" value={formData.confirmPassword} onChange={handleChange} $hasError={!!errors.confirmPassword} />
+                    <Input id="confirmPassword" name="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="Repeat password" value={formData.confirmPassword} onChange={handleChange} $hasError={!!errors.confirmPassword} $hasToggle />
                     <PasswordToggle type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                       {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
                     </PasswordToggle>

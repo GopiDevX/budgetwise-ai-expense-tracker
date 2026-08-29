@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useCurrency } from '../contexts/CurrencyContext';
 import styled from 'styled-components';
-import { FiPlus, FiEdit2, FiTrash2, FiX, FiFilter, FiDollarSign, FiRefreshCw, FiArrowUpCircle, FiArrowDownCircle, FiDownload } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiX, FiFilter, FiDollarSign, FiRefreshCw, FiArrowUpCircle, FiArrowDownCircle, FiDownload, FiCamera } from 'react-icons/fi';
 import usePageTitle from '../hooks/usePageTitle';
 import ConfirmationModal from '../components/Common/ConfirmationModal';
 import categoryService from '../services/categoryService';
 import transactionService from '../services/transactionService';
+import aiService from '../services/aiService';
+import { exportToCSV } from '../utils/csvExport';
 
 const Container = styled.div`
   max-width: 1200px;
@@ -732,6 +734,44 @@ const Transactions = () => {
         setError('');
     };
 
+    const handleReceiptUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            setIsLoading(true);
+            setError('');
+            const data = await aiService.scanReceipt(file);
+            
+            if (data.error) {
+                setError(data.error);
+                return;
+            }
+
+            const matchedCat = categories.find(c => 
+                c.name.toLowerCase().includes((data.category || '').toLowerCase()) || 
+                (data.category || '').toLowerCase().includes(c.name.toLowerCase())
+            ) || categories[0];
+
+            setFormData({
+                description: data.merchant || '',
+                amount: data.amount ? Math.abs(parseFloat(data.amount)).toString() : '',
+                type: 'expense', // Receipts are typically expenses
+                category: matchedCat.name,
+                categoryId: matchedCat.id,
+                date: data.date || new Date().toISOString().split('T')[0]
+            });
+            
+            setShowModal(true);
+        } catch (err) {
+            console.error('Receipt scan error:', err);
+            setError('Failed to scan receipt. Please try again.');
+        } finally {
+            setIsLoading(false);
+            e.target.value = null; // Reset input
+        }
+    };
+
     // Stats Calculation
     const totalIncome = transactions
         .filter(tx => tx.type === 'income')
@@ -751,14 +791,29 @@ const Transactions = () => {
                     <Subtitle>Manage all your income and expenses</Subtitle>
                 </div>
                 <div style={{ display: 'flex' }}>
+                    <RefreshButton onClick={() => exportToCSV(transactions)} style={{ marginRight: '1rem', background: 'white', color: '#64748b' }}>
+                        <FiDownload style={{ marginRight: '0.5rem' }} /> Export CSV
+                    </RefreshButton>
                     <RefreshButton onClick={loadTransactions} disabled={isLoading}>
                         <FiRefreshCw className={isLoading ? 'spinning' : ''} /> {isLoading ? 'Loading...' : 'Refresh'}
                     </RefreshButton>
+                    <input 
+                        type="file" 
+                        id="receipt-upload" 
+                        style={{ display: 'none' }} 
+                        accept="image/*" 
+                        onChange={handleReceiptUpload} 
+                    />
+                    <Button as="label" htmlFor="receipt-upload" style={{ marginRight: '1rem', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+                        <FiCamera style={{ marginRight: '0.5rem' }} /> {isLoading ? 'Scanning...' : 'Scan Receipt'}
+                    </Button>
                     <Button onClick={() => setShowModal(true)}>
                         <FiPlus /> Add Transaction
                     </Button>
                 </div>
             </Header>
+
+            {error && !showModal && <ErrorMessage style={{ marginBottom: '1rem' }}><FiX size={16} /> {error}</ErrorMessage>}
 
             <SummaryGrid>
                 <SummaryCard color="#16a34a">

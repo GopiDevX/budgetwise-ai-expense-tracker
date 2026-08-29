@@ -12,7 +12,13 @@ export const AUTH_ENDPOINTS = {
 // AI endpoints
 export const AI_ENDPOINTS = {
   ADVISOR: `${API_BASE_URL}/ai/advisor`,
-  INSIGHTS: `${API_BASE_URL}/ai/insights`
+  INSIGHTS: `${API_BASE_URL}/ai/insights`,
+  SCAN_RECEIPT: `${API_BASE_URL}/ai/scan-receipt`
+};
+
+// Subscriptions
+export const SUBSCRIPTION_ENDPOINTS = {
+  BASE: `${API_BASE_URL}/subscriptions`
 };
 
 // Common headers

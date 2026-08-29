@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import styled, { css } from 'styled-components';
-import { FiHome, FiCreditCard, FiList, FiTag, FiBarChart2, FiCpu, FiMessageSquare, FiZap, FiSettings, FiLogOut, FiChevronLeft, FiChevronRight, FiMenu } from 'react-icons/fi';
+import { FiHome, FiCreditCard, FiList, FiTag, FiBarChart2, FiCpu, FiMessageSquare, FiZap, FiSettings, FiLogOut, FiChevronLeft, FiChevronRight, FiMenu, FiRepeat } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -256,6 +256,7 @@ const Sidebar = ({ isOpen, onClose, collapsed, setCollapsed }) => {
     { icon: FiList, label: 'Transactions', path: '/expenses' },
     { icon: FiTag, label: 'Categories', path: '/categories' },
     { icon: FiBarChart2, label: 'Analytics', path: '/analytics' },
+    { icon: FiRepeat, label: 'Subscriptions', path: '/subscriptions' },
     { icon: FiCpu, label: 'AI Insights', path: '/ai-insights' },
     { icon: FiMessageSquare, label: 'AI Advisor', path: '/ai-advisor' },
     { icon: FiZap, label: 'Upgrade', path: '/upgrade', highlight: true },

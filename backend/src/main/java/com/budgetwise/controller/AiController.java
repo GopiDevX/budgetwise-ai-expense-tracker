@@ -47,4 +47,14 @@ public class AiController {
         String advice = aiService.generateAdvice(prompt);
         return ResponseEntity.ok(new AiResponse(advice));
     }
+    
+    @PostMapping(value = "/scan-receipt", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> scanReceipt(@RequestParam("file") org.springframework.web.multipart.MultipartFile file, Authentication authentication) {
+        try {
+            String jsonResponse = aiService.extractReceiptData(file);
+            return ResponseEntity.ok(jsonResponse);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("{\"error\": \"Failed to process receipt\"}");
+        }
+    }
 }

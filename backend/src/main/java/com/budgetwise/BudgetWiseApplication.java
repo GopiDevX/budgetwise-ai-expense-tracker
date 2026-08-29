@@ -8,8 +8,11 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.List;
 
+import org.springframework.scheduling.annotation.EnableScheduling;
+
 @SpringBootApplication
 @EnableAsync
+@EnableScheduling
 public class BudgetWiseApplication {
 
     public static void main(String[] args) {

@@ -28,6 +28,7 @@ import Analytics from './pages/Analytics';
 import AiAdvisor from './pages/AiAdvisor';
 import Categories from './pages/Categories';
 import Upgrade from './pages/Upgrade';
+import Subscriptions from './pages/Subscriptions';
 
 import DashboardLayout from './layouts/DashboardLayout';
 
@@ -317,6 +318,17 @@ function App() {
                       <ProtectedRoute>
                         <DashboardLayout>
                           <Upgrade />
+                        </DashboardLayout>
+                      </ProtectedRoute>
+                    }
+                  />
+
+                  <Route
+                    path="/subscriptions"
+                    element={
+                      <ProtectedRoute>
+                        <DashboardLayout>
+                          <Subscriptions />
                         </DashboardLayout>
                       </ProtectedRoute>
                     }

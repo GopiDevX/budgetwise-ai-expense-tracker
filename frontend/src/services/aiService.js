@@ -51,6 +51,33 @@ class AiService {
             throw error;
         }
     }
+
+    async scanReceipt(file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const token = authService.getToken();
+            
+            const response = await fetch(AI_ENDPOINTS.SCAN_RECEIPT, {
+                method: 'POST',
+                headers: {
+                    ...(token && { 'Authorization': `Bearer ${token}` })
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(error || 'Failed to scan receipt');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Scan receipt error:', error);
+            throw error;
+        }
+    }
 }
 
 const aiService = new AiService();

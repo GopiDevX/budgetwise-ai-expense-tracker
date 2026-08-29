@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts';
-import { FiTrendingUp, FiArrowUpRight, FiArrowDownRight, FiCalendar } from 'react-icons/fi';
+import { FiTrendingUp, FiArrowUpRight, FiArrowDownRight, FiCalendar, FiDownload } from 'react-icons/fi';
 import usePageTitle from '../hooks/usePageTitle';
+import transactionService from '../services/transactionService';
+import { useCurrency } from '../contexts/CurrencyContext';
+import { exportToCSV } from '../utils/csvExport';
 
 const PageContainer = styled.div`
   padding: 2rem;
@@ -135,29 +138,89 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
 const Analytics = () => {
     usePageTitle('Analytics | BudgetWise');
 
-    const monthlyData = [
-        { name: 'Jan', income: 4500, expense: 3200 },
-        { name: 'Feb', income: 5200, expense: 3800 },
-        { name: 'Mar', income: 4800, expense: 4100 },
-        { name: 'Apr', income: 5500, expense: 3500 },
-        { name: 'May', income: 6000, expense: 4200 },
-        { name: 'Jun', income: 5800, expense: 3900 },
-    ];
+    const { format: formatCurrency } = useCurrency();
+    const [transactions, setTransactions] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const categoryData = [
-        { name: 'Shopping', value: 35 },
-        { name: 'Food', value: 25 },
-        { name: 'Transport', value: 20 },
-        { name: 'Bills', value: 15 },
-        { name: 'Other', value: 5 },
-    ];
+    React.useEffect(() => {
+        const fetchTransactions = async () => {
+            try {
+                const data = await transactionService.getTransactions();
+                setTransactions(data);
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchTransactions();
+    }, []);
 
-    const trendData = [
-        { name: 'Week 1', savings: 1200 },
-        { name: 'Week 2', savings: 1800 },
-        { name: 'Week 3', savings: 1500 },
-        { name: 'Week 4', savings: 2200 },
-    ];
+    // Helper functions
+    const getMonthName = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleString('default', { month: 'short' });
+    };
+
+    // Calculate Stats
+    const totalIncome = transactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + parseFloat(t.amount), 0);
+        
+    const totalExpenses = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + Math.abs(parseFloat(t.amount)), 0);
+        
+    const netSavings = totalIncome - totalExpenses;
+    
+    // Process Data for Area Chart (Income vs Expense over months)
+    const monthlyDataMap = {};
+    transactions.forEach(t => {
+        const month = getMonthName(t.date);
+        if (!monthlyDataMap[month]) {
+            monthlyDataMap[month] = { name: month, income: 0, expense: 0, order: new Date(t.date).getMonth() };
+        }
+        if (t.type === 'income') {
+            monthlyDataMap[month].income += parseFloat(t.amount);
+        } else {
+            monthlyDataMap[month].expense += Math.abs(parseFloat(t.amount));
+        }
+    });
+    
+    const monthlyData = Object.values(monthlyDataMap).sort((a, b) => a.order - b.order);
+
+    // Process Data for Pie Chart (Expense Distribution)
+    const categoryDataMap = {};
+    transactions
+        .filter(t => t.type === 'expense')
+        .forEach(t => {
+            const cat = t.category || 'Other';
+            categoryDataMap[cat] = (categoryDataMap[cat] || 0) + Math.abs(parseFloat(t.amount));
+        });
+        
+    const categoryData = Object.keys(categoryDataMap)
+        .map(key => ({ name: key, value: categoryDataMap[key] }))
+        .sort((a, b) => b.value - a.value); // Sort descending
+
+    // Process Data for Bar Chart (Weekly/Monthly Savings)
+    const trendData = monthlyData.map(m => ({
+        name: m.name,
+        savings: m.income - m.expense
+    }));
+
+    // Calculate Avg Monthly Spend
+    const numMonths = monthlyData.length || 1;
+    const avgMonthlySpend = totalExpenses / numMonths;
+
+    if (isLoading) {
+        return (
+            <PageContainer>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+                    Loading analytics...
+                </div>
+            </PageContainer>
+        );
+    }
 
     return (
         <PageContainer>
@@ -166,37 +229,36 @@ const Analytics = () => {
                     <PageTitle>Analytics</PageTitle>
                     <PageSubtitle>Deep dive into your financial patterns</PageSubtitle>
                 </TitleSection>
-                <DateFilter>
-                    <FiCalendar size={16} />
-                    Last 6 Months
-                </DateFilter>
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    <DateFilter onClick={() => exportToCSV(transactions)}>
+                        <FiDownload size={16} />
+                        Export CSV
+                    </DateFilter>
+                </div>
             </PageHeader>
 
             <StatsRow>
                 <StatCard>
                     <StatLabel>Total Income</StatLabel>
                     <StatValue>
-                        ₹31,800
-                        <TrendBadge positive><FiArrowUpRight size={12} />12%</TrendBadge>
+                        {formatCurrency(totalIncome)}
                     </StatValue>
                 </StatCard>
                 <StatCard>
                     <StatLabel>Total Expenses</StatLabel>
                     <StatValue>
-                        ₹22,700
-                        <TrendBadge><FiArrowDownRight size={12} />8%</TrendBadge>
+                        {formatCurrency(totalExpenses)}
                     </StatValue>
                 </StatCard>
                 <StatCard>
                     <StatLabel>Net Savings</StatLabel>
-                    <StatValue>
-                        ₹9,100
-                        <TrendBadge positive><FiArrowUpRight size={12} />24%</TrendBadge>
+                    <StatValue style={{ color: netSavings >= 0 ? '#059669' : '#dc2626' }}>
+                        {formatCurrency(netSavings)}
                     </StatValue>
                 </StatCard>
                 <StatCard>
                     <StatLabel>Avg Monthly Spend</StatLabel>
-                    <StatValue>₹3,783</StatValue>
+                    <StatValue>{formatCurrency(avgMonthlySpend)}</StatValue>
                 </StatCard>
             </StatsRow>
 
@@ -254,7 +316,7 @@ const Analytics = () => {
 
             <ChartCard>
                 <ChartHeader>
-                    <ChartTitle>Weekly Savings Trend</ChartTitle>
+                    <ChartTitle>Monthly Savings Trend</ChartTitle>
                 </ChartHeader>
                 <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={trendData}>

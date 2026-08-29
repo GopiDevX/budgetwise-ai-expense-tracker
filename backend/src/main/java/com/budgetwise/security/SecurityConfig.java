@@ -64,7 +64,10 @@ public class SecurityConfig {
             "http://localhost:5173",
             "http://127.0.0.1:5173",
             "http://localhost:8081",
-            "http://127.0.0.1:8081"
+            "http://127.0.0.1:8081",
+            "https://*.vercel.app",
+            "https://*.onrender.com",
+            "https://budgetwise-ai-expense-tracker-analyser.vercel.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));

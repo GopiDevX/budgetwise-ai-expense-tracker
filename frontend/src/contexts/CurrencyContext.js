@@ -27,7 +27,8 @@ export const CurrencyProvider = ({ children }) => {
                 }
 
                 console.log('CurrencyContext: Loading currency preference from backend...');
-                const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/user/preferences`, {
+                const baseUrl = process.env.NODE_ENV === 'production' ? 'https://budgetwise-ai-expense-tracker.onrender.com/api' : 'http://localhost:8081/api';
+                const response = await fetch(`${baseUrl}/user/preferences`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
@@ -65,7 +66,8 @@ export const CurrencyProvider = ({ children }) => {
                 return;
             }
 
-            const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/user/preferences`, {
+            const baseUrl = process.env.NODE_ENV === 'production' ? 'https://budgetwise-ai-expense-tracker.onrender.com/api' : 'http://localhost:8081/api';
+            const response = await fetch(`${baseUrl}/user/preferences`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`,

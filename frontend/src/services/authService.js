@@ -1,5 +1,6 @@
 // Real API service for authentication with OTP
-const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/auth`;
+const baseUrl = process.env.NODE_ENV === 'production' ? 'https://budgetwise-ai-expense-tracker.onrender.com/api' : 'http://localhost:8081/api';
+const API_BASE_URL = `${baseUrl}/auth`;
 
 class AuthService {
 

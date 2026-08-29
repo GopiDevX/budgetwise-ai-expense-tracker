@@ -245,7 +245,8 @@ const ForgotPassword = () => {
       setLoading(true);
 
       // Complete password reset with OTP
-      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/auth/forgot-password/verify-otp`, {
+      const baseUrl = process.env.NODE_ENV === 'production' ? 'https://budgetwise-ai-expense-tracker.onrender.com/api' : 'http://localhost:8081/api';
+      const response = await fetch(`${baseUrl}/auth/forgot-password/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

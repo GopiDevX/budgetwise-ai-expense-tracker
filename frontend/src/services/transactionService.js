@@ -1,7 +1,8 @@
 // Transaction API service for BudgetWise
 import authService from './authService';
 
-const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/transactions`;
+const baseUrl = process.env.NODE_ENV === 'production' ? 'https://budgetwise-ai-expense-tracker.onrender.com/api' : 'http://localhost:8081/api';
+const API_BASE_URL = `${baseUrl}/transactions`;
 
 class TransactionService {
     // Get auth headers

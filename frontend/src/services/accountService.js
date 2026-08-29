@@ -1,4 +1,5 @@
-const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/accounts`;
+const baseUrl = process.env.NODE_ENV === 'production' ? 'https://budgetwise-ai-expense-tracker.onrender.com/api' : 'http://localhost:8081/api';
+const API_BASE_URL = `${baseUrl}/accounts`;
 
 class AccountService {
     getAuthHeaders() {

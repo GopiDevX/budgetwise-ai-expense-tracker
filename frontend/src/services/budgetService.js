@@ -1,6 +1,7 @@
 import authService from './authService';
 
-const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/budgets`;
+const baseUrl = process.env.NODE_ENV === 'production' ? 'https://budgetwise-ai-expense-tracker.onrender.com/api' : 'http://localhost:8081/api';
+const API_BASE_URL = `${baseUrl}/budgets`;
 
 const budgetService = {
     /**

@@ -1,7 +1,7 @@
 // Transaction API service for BudgetWise
 import authService from './authService';
 
-const API_BASE_URL = 'http://localhost:8081/api/transactions';
+const API_BASE_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/transactions`;
 
 class TransactionService {
     // Get auth headers

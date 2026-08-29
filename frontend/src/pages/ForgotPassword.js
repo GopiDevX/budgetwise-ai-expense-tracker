@@ -245,7 +245,7 @@ const ForgotPassword = () => {
       setLoading(true);
 
       // Complete password reset with OTP
-      const response = await fetch('http://localhost:8081/api/auth/forgot-password/verify-otp', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/auth/forgot-password/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

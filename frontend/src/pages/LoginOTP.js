@@ -309,7 +309,7 @@ const LoginOTP = () => {
       setLoading(true);
 
       // Request OTP for login
-      const response = await fetch('http://localhost:8081/api/auth/login/request-otp', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/auth/login/request-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -347,7 +347,7 @@ const LoginOTP = () => {
       setLoading(true);
 
       // Complete login with OTP
-      const response = await fetch('http://localhost:8081/api/auth/login/verify-otp', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:8081/api'}/auth/login/verify-otp`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
